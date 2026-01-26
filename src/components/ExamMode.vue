@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import questionsData from '../data/questions.json'
 
-const EXAM_COUNT = 10
+const EXAM_COUNT = 50
 
 const phase = ref('answering') // 'answering' | 'result'
 const examQuestions = ref([])
