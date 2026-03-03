@@ -191,7 +191,13 @@ export default {
 }
 
 .count {
-  color: #666;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .jump-control {
@@ -321,5 +327,56 @@ export default {
   color: #4caf50;
   font-weight: 500;
   font-size: 0.9rem;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .header-bar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .back-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .header-bar h2 {
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  .jump-control {
+    margin-left: auto;
+  }
+
+  .jump-input {
+    width: 50px;
+    padding: 0.35rem 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .jump-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .count {
+    order: 5;
+    display: block;
+    margin: 0.25rem auto 0;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.7rem;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.25);
+  }
+
+  /* 第一行：返回 + 标题 + 跳转 */
+  .back-btn,
+  .header-bar h2,
+  .jump-control {
+    flex-shrink: 0;
+  }
 }
 </style>
