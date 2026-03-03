@@ -1,8 +1,10 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import questionsData from '../data/questions.json'
 
 const questions = ref(questionsData.questions)
+const targetQuestion = ref('')
+const questionRefs = ref([])
 
 const typeLabels = {
   single: '单选题',
@@ -10,14 +12,78 @@ const typeLabels = {
   boolean: '判断题'
 }
 
-const getAnswerText = (question) => {
-  if (question.type === 'boolean') {
-    return question.answer ? '对' : '错'
+// 跳转到指定题目
+const jumpToQuestion = () => {
+  const index = parseInt(targetQuestion.value) - 1
+  if (index >= 0 && index < questions.value.length) {
+    const element = questionRefs.value[index]
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      // 保存位置
+      localStorage.setItem('studyModeLastQuestion', index + 1)
+    }
   }
-  if (question.type === 'multiple') {
-    return question.answer.join(', ')
+}
+
+// 处理回车键
+const handleKeyPress = (e) => {
+  if (e.key === 'Enter') {
+    jumpToQuestion()
   }
-  return question.answer
+}
+
+// 恢复上次位置
+onMounted(() => {
+  const lastQuestion = localStorage.getItem('studyModeLastQuestion')
+  if (lastQuestion) {
+    const index = parseInt(lastQuestion) - 1
+    if (index >= 0 && index < questions.value.length) {
+      setTimeout(() => {
+        const element = questionRefs.value[index]
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+    }
+  }
+
+  // 监听滚动，自动记录当前浏览到的题目
+  const handleScroll = () => {
+    const scrollTop = window.scrollY
+    const windowHeight = window.innerHeight
+
+    // 找到当前视野中的题目
+    for (let i = 0; i < questionRefs.value.length; i++) {
+      const element = questionRefs.value[i]
+      if (element) {
+        const rect = element.getBoundingClientRect()
+        const absoluteTop = rect.top + scrollTop
+
+        // 如果题目在屏幕中间位置，记录它
+        if (scrollTop > absoluteTop - windowHeight / 2) {
+          localStorage.setItem('studyModeLastQuestion', i + 1)
+        }
+      }
+    }
+  }
+
+  // 使用节流优化滚动监听
+  let scrollTimeout
+  const throttledScroll = () => {
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout)
+    }
+    scrollTimeout = setTimeout(handleScroll, 100)
+  }
+
+  window.addEventListener('scroll', throttledScroll)
+})
+
+// 设置题目引用
+const setQuestionRef = (el, index) => {
+  if (el) {
+    questionRefs.value[index] = el
+  }
 }
 </script>
 
@@ -26,6 +92,18 @@ const getAnswerText = (question) => {
     <div class="header-bar">
       <button class="back-btn" @click="$emit('back')">← 返回</button>
       <h2>📖 备考模式</h2>
+      <div class="jump-control">
+        <input
+          v-model="targetQuestion"
+          type="number"
+          min="1"
+          :max="questions.length"
+          placeholder="题号"
+          class="jump-input"
+          @keypress="handleKeyPress"
+        />
+        <button class="jump-btn" @click="jumpToQuestion">跳转</button>
+      </div>
       <span class="count">共 {{ questions.length }} 道题</span>
     </div>
 
@@ -33,7 +111,9 @@ const getAnswerText = (question) => {
       <div
         v-for="(q, index) in questions"
         :key="q.id"
+        :ref="(el) => setQuestionRef(el, index)"
         class="question-card"
+        :id="'question-' + (index + 1)"
       >
         <div class="question-header">
           <span class="question-number">{{ index + 1 }}.</span>
@@ -113,6 +193,42 @@ export default {
 .count {
   color: #666;
 }
+
+.jump-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.jump-input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.jump-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.jump-btn {
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.jump-btn:hover {
+  background: #5568d3;
+}
+
 
 .questions-list {
   display: flex;
